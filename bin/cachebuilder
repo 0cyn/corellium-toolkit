@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+## cachebuilder.sh - Febuary 2021
+## Author: kat (gh: KritantaDev, tw: @arm64e)
+## Licensed under CC0
+
+# This script executes itself
+# here be dragons
+
+# Uncomment this when debugging the bash commands
+# set -xv
+
+# Fail on error
+set -e
+
+# Check if we're on xnu, and if username is `mobile` we're on iOS, which doesn't have brew.
+# > /dev/null 2>&1 is bash for "shut up"; processes will render no output on stdout or stderr.
+uname -v | grep xnu > /dev/null 2>&1 && python3 -c "exit('${USER}'=='mobile')"|| echo "Script written for macOS only"
+
+# Dependency notices and installations.
+# echo "First time this script has been ran on this machine; dependencies will be installed automatically";
+command -v brew > /dev/null 2>&1 || echo "install homebrew from brew.sh"
+command -v ipsw > /dev/null 2>&1 || brew install blacktop/tap/ipsw
+command -v ideviceinfo > /dev/null 2>&1 || brew install ideviceinfo
+command -v gsed > /dev/null 2>&1 || brew install gsed
+
+# send complaints to @arm64e on twitter.
+function goto { cmd=$(echo "$this" | gsed -n "/$1:/{:a;n;p;ba};" | grep -v ':\s*$');eval "${cmd}";exit; }; this=$(< $0);
+
+
+
+start=${1:-"start"}
+goto $start
+
+
+
+start:
+
+# List only usb devices (usbfluxd counts) seperated by space
+ids=$(idevice_id -l | xargs)
+# Python hack we don't need for now, but will if we target both net and usb devices.
+# DVS=($(python3 -c "print(*[x for x in '${ids}'.split()[::2]])"))
+DVS=($ids)
+d=1
+echo "Connected Devices: "
+for i in ${DVS[@]}; do
+echo "${d}: $(ideviceinfo -u ${i} --key ProductType); $(ideviceinfo -u ${i} --key HardwareModel); $(ideviceinfo -u ${i} --key BuildVersion); $(ideviceinfo -u ${i} --key ProductVersion)"
+((d=d+1))
+done
+echo -n  "Select Device: "
+read;
+UUID=$(echo $DVS | cut -d" " -f${REPLY})
+echo "Fetching Device Info"
+PT=$(ideviceinfo -u $UUID --key ProductType); HM=$(ideviceinfo -u $UUID --key HardwareModel); BV=$(ideviceinfo -u $UUID --key BuildVersion); PV=$(ideviceinfo -u $UUID --key ProductVersion)
+
+
+cd /tmp && mkdir -p ipsw; cd ipsw
+# Some debugging envars that allow us to skip steps; run script with `NODL=1 ./cachebuilder.sh` (or NOEX) to use these
+test -z $NOEX || goto build
+test -z $NODL || goto extract
+
+
+download:
+echo "Downloading ipsw"
+rm -r /tmp/ipsw/* > /dev/null 2>&1 || true
+ipsw download --build $BV --device $PT || python3 -c "print('Download Failed. '); exit(1)"
+
+
+extract:
+echo "Extracting cache"
+ipsw extract --dyld $(ls *.ipsw | xargs | cut -f 1 -d ' ') || python3 -c "print('Failed to extract cache. '); exit(1)"
+
+
+build:
+echo "Building xcode cache"
+TDIR="/Users/$USER/Library/Developer/Xcode/iOS DeviceSupport/${PV} (${BV})/"
+echo $TDIR
+mkdir "$TDIR"
+mkdir "$TDIR/Symbols"
+echo "Creating info dictionary"
+stat "$TDIR/Info.plist" > /dev/null 2>&1 || curl -s https://gist.githubusercontent.com/KritantaDev/5dbe177c255c3578370afa42e15e8e64/raw/9c02aff7ea216cff3d1f7da09bcb5a05752e77c6/cacheplaceholder > "$TDIR/Info.plist"
+echo "Performing actual extraction with dsc_extract"
+ipsw dyld split $(find . -name 'dyld_sh*' -type f) "$TDIR/Symbols" || python3 -c "print('Failed to extract from cache. '); exit(1)"
+echo "Removing Downloaded Files"
+cd .. && rm -r ipsw
+echo "Restart Xcode and your device shouldn't require copying files from the cache. Happy hacking!"
