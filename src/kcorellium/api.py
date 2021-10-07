@@ -1,5 +1,6 @@
 import http.client
 import json
+from .util import prod_model_to_name
 
 
 class CorelliumAPI:
@@ -183,6 +184,10 @@ class CorelliumDevice(APIWrapperObjectBase):
         self.project_id = self.raw['project']
 
         self.name = self.raw['name']
+
+        if not self.name:
+            self.name = prod_model_to_name(self.raw['product'])
+
         self.os_version = self.raw['os']
         self.os_build = self.raw['osbuild']
         self.product = self.raw['product']
@@ -212,6 +217,9 @@ class CorelliumDevice(APIWrapperObjectBase):
 
     def stop(self, api_connection: APIConnection):
         api_connection.device_ctrl(self.id, 'stop')
+
+    def str_one_line(self):
+        return f'{self.name.ljust(10)} | {self.product.ljust(10)} | {self.os_version.ljust(7)} ({self.os_build.ljust(6)}) | {self.status}'
 
     def __str__(self):
         ret = []

@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+import os
+
+from kcorellium import api
+import pprint
+
+
+def main():
+    auth_info = auth()
+
+    token = api.CorelliumAPI.get_token(auth_info['url'], auth_info['user'], auth_info['pass'])['token']
+    corellium_api = api.APIConnection(auth_info['url'], token)
+
+    shell = ShellInstance(corellium_api)
+    shell.start()
+
+
+def auth():
+    try:
+        url = os.environ['CORELLIUM_URL']
+        user = os.environ['CORELLIUM_USER']
+        passwd = os.environ['CORELLIUM_PASS']
+    except KeyError:
+        url = input('URL > ')
+        user = input('User > ')
+        passwd = input('Password > ')
+
+    return {'url': url, 'user': user, 'pass': passwd}
+
+
+class ShellInstance:
+
+    def __init__(self, corellium_api):
+        self.api: api.APIConnection = corellium_api
+        self.instances = self.api.get_instances()
+
+        self.selected_project_id = None
+        self.selected_device = None
+
+    def start(self):
+        while True:
+            self.instances = self.api.get_instances()
+            try:
+                COMMANDS = {
+                    'iraw': self.instances_raw,
+                    'select': self.select,
+                    'list': self.list,
+                    'get': self.get,
+                    'token': self.token,
+                    'device': self.device,
+                    'd': self.device
+                }
+                cmd = input('> ')
+                if cmd == 'exit':
+                    break
+                args: str = ' '.join(cmd.split(' ')[1:])
+                COMMANDS[cmd.split(' ')[0]](args)
+            except KeyboardInterrupt as ex:
+                break
+
+    def token(self, args: str):
+        print(self.api.token)
+
+    def list(self, args: str):
+        arg_list = args.split(' ')
+        if arg_list[0] == 'projects':
+            projects = self.instances.project_data.projects
+
+            for project in projects:
+                print(f'Project: {project.name}')
+        if arg_list[0] == 'devices':
+            project = self.instances.projects[self.selected_project_id]
+            for index, device in enumerate(project.devices):
+                print(f'[{index}] Device: {device.name}')
+
+        if arg_list[0] == 'all':
+            projects = self.instances.project_data.projects
+            for project in projects:
+                print(f'Project: {project.name}')
+                for device in project.devices:
+                    print(f'- {device.str_one_line()}')
+
+
+    def select(self, args: str):
+        arg_list = args.split(' ')
+        if arg_list[0] == 'project':
+            proj_name = arg_list[1]
+            for pid, proj in self.instances.projects.items():
+                if proj_name == proj.name:
+                    self.selected_project_id = pid
+
+        if arg_list[0] == 'device':
+            dev_index = int(arg_list[1])
+            self.selected_device = self.instances.projects[self.selected_project_id].devices[dev_index]
+
+            print(f'Selected device {self.selected_device.name}')
+
+    def device(self, args: str):
+        arg_list = args.split(' ')
+        cmd = args.split(' ')[0]
+        if cmd == 'start':
+            self.selected_device.start(self.api)
+        elif cmd == 'stop':
+            self.selected_device.stop(self.api)
+        elif cmd == 'ls':
+            data = self.selected_device.ls(self.api, arg_list[1])
+            for entry in data['entries']:
+                print(entry['name'])
+        else:
+            print(cmd + ' command not found')
+
+    def get(self, args: str):
+        arg_list = args.split(' ')
+
+        field = arg_list[0]
+        if field == 'all':
+            print(str(self.selected_device))
+
+    def instances_raw(self, args: str):
+        pprint.pprint(self.instances.raw)
+
+
+if __name__ == "__main__":
+    main()

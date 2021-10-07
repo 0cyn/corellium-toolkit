@@ -17,5 +17,5 @@ setup(name='corellium-toolkit',
             'License :: OSI Approved :: MIT License',
             'Operating System :: OS Independent'
       ],
-      scripts=['bin/cachebuilder']
+      scripts=['bin/cachebuilder', 'bin/corctl']
       )
