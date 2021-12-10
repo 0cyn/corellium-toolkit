@@ -63,7 +63,7 @@ test -z $NODL || goto extract
 download:
 echo "Downloading ipsw"
 rm -r /tmp/ipsw/* > /dev/null 2>&1 || true
-ipsw download --build $BV --device $PT || python3 -c "print('Download Failed. '); exit(1)"
+ipsw download ipsw --build $BV --device $PT || python3 -c "print('Download Failed. '); exit(1)"
 
 
 extract:
