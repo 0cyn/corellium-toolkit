@@ -12,6 +12,8 @@ some various tools, etc i use for working with corellium
 
 Using this tool keeps XCode from needing to download the 2GB file over USB (or even slower, USBFlux).
 
+run `cachebuilder` in terminal after installation to use
+
 WIP:
 
 `corctl` is a Shell-styled interface for interacting with the Corellium Web API, controlling devices/projects, etc. 
