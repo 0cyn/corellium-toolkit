@@ -78,7 +78,7 @@ echo $TDIR
 mkdir "$TDIR"
 mkdir "$TDIR/Symbols"
 echo "Creating info dictionary"
-stat "$TDIR/Info.plist" > /dev/null 2>&1 || curl -s https://gist.githubusercontent.com/KritantaDev/5dbe177c255c3578370afa42e15e8e64/raw/9c02aff7ea216cff3d1f7da09bcb5a05752e77c6/cacheplaceholder > "$TDIR/Info.plist"
+stat "$TDIR/Info.plist" > /dev/null 2>&1 || curl -s https://gist.githubusercontent.com/cxnder/5dbe177c255c3578370afa42e15e8e64/raw/9c02aff7ea216cff3d1f7da09bcb5a05752e77c6/cacheplaceholder > "$TDIR/Info.plist"
 echo "Performing actual extraction with dsc_extract"
 ipsw dyld split $(find . -name 'dyld_sh*' -type f) "$TDIR/Symbols" || python3 -c "print('Failed to extract from cache. '); exit(1)"
 echo "Removing Downloaded Files"
