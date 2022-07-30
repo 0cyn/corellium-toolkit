@@ -4,7 +4,7 @@ some various tools, etc i use for working with corellium
 
 ## Installing/Updating
 
-`python3 -m pip install --force-reinstall git+git://github.com/KritantaDev/corellium-toolkit`
+`python3 -m pip install --force-reinstall git+git://github.com/cxnder/corellium-toolkit`
 
 ## Tools
 
