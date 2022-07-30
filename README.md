@@ -14,12 +14,6 @@ Using this tool keeps XCode from needing to download the 2GB file over USB (or e
 
 run `cachebuilder` in terminal after installation to use
 
-WIP:
-
-`corctl` is a Shell-styled interface for interacting with the Corellium Web API, controlling devices/projects, etc. 
-
-`src/kcorellium` is a python based API Wrapper for Corellium's web api
-
 ---
 
 i am not officially associated with corellium inc. this project has not been endorsed by them. the corellium web API is not
