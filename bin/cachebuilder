@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ## cachebuilder.sh - Febuary 2021
-## Author: kat (gh: KritantaDev, tw: @arm64e)
+## Author: kat (gh: cxnder, tw: @arm64e)
 ## Licensed under CC0
 
 # This script executes itself
