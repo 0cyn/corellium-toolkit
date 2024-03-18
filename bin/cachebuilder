@@ -21,7 +21,7 @@ uname -v | grep xnu > /dev/null 2>&1 && python3 -c "exit('${USER}'=='mobile')"||
 # echo "First time this script has been ran on this machine; dependencies will be installed automatically";
 command -v brew > /dev/null 2>&1 || echo "install homebrew from brew.sh"
 command -v ipsw > /dev/null 2>&1 || brew install blacktop/tap/ipsw
-command -v ideviceinfo > /dev/null 2>&1 || brew install ideviceinfo
+command -v ideviceinfo > /dev/null 2>&1 || brew install libimobiledevice
 command -v gsed > /dev/null 2>&1 || brew install gsed
 
 # send complaints to @arm64e on twitter.
